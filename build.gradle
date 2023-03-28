@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.0.2'
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+group = 'ru.vk.etcos'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+}
+
+// зависимости проекта
+dependencies {
+    // пока не нужны, т.к. не пишем тесты
+//    implementation 'org.springframework.boot:spring-boot-starter'
+//    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // springboot стартеры
+    // spring + jpa/hibernate
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // безопасность
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    // работа с email
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // валидация объектов
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // работа с jwt
+    // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+
+    // коннектор для БД Postgres
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.5.3'
+
+    // https://projectlombok.org/setup/gradle
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
