@@ -126,7 +126,7 @@ public class CategoryController {
             return new ResponseEntity(msg, HttpStatus.NOT_ACCEPTABLE);
         }
 
-        return new ResponseEntity(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/search")

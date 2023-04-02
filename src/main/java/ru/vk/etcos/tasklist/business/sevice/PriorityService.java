@@ -20,4 +20,16 @@ public class PriorityService {
     public Optional<CPriority> findById(Long id) {
         return priorityRepo.findById(id);
     }
+
+    public List<CPriority> findAll(String email) {
+        return priorityRepo.findByUserEmailOrderByIdAsc(email);
+    }
+
+    public CPriority addOrUpdate(CPriority priority) {
+        return priorityRepo.save(priority);
+    }
+
+    public void deleteById(Long id) {
+        priorityRepo.deleteById(id);
+    }
 }
