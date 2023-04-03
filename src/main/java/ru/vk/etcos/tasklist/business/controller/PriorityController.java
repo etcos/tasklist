@@ -7,6 +7,7 @@ import org.springframework.dao.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import ru.vk.etcos.tasklist.business.entity.*;
+import ru.vk.etcos.tasklist.business.search.*;
 import ru.vk.etcos.tasklist.business.sevice.*;
 import ru.vk.etcos.tasklist.util.*;
 
@@ -65,6 +66,12 @@ public class PriorityController {
             return new ResponseEntity(msg, HttpStatus.NOT_ACCEPTABLE);
         }
 
+        if (Objects.isNull(priority.getColor()) || priority.getColor().trim().length() == 0) {
+            String msg = "Priority missed param: color";
+            CLogger.warn(msg);
+            return new ResponseEntity(msg, HttpStatus.NOT_ACCEPTABLE);
+        }
+
         return ResponseEntity.ok(priorityService.addOrUpdate(priority));
     }
 
@@ -84,6 +91,12 @@ public class PriorityController {
             return new ResponseEntity(msg, HttpStatus.NOT_ACCEPTABLE);
         }
 
+        if (Objects.isNull(priority.getColor()) || priority.getColor().trim().length() == 0) {
+            String msg = "Priority missed param: color";
+            CLogger.warn(msg);
+            return new ResponseEntity(msg, HttpStatus.NOT_ACCEPTABLE);
+        }
+
         priorityService.addOrUpdate(priority);
 
         return ResponseEntity.ok().build();
@@ -91,7 +104,7 @@ public class PriorityController {
 
     @DeleteMapping("/delete")
     public ResponseEntity delete(@RequestBody Long id) {
-        CLogger.info("PriorityController.delete for category id: " + id);
+        CLogger.info("PriorityController.delete for priority id: " + id);
 
         if (Objects.isNull(id) || id == 0) {
             String msg = "Priority missed param: id";
@@ -110,4 +123,14 @@ public class PriorityController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/search")
+    public ResponseEntity<List<CPriority>> search(@RequestBody PrioritySearchValues values) {
+        CLogger.info("PriorityController.search for priority values: " + values);
+
+        List<CPriority> result = priorityService.findByValues(values);
+
+        return ResponseEntity.ok(result);
+    }
+
 }

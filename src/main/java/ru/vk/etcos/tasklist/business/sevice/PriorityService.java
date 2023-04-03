@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 import ru.vk.etcos.tasklist.business.entity.*;
 import ru.vk.etcos.tasklist.business.repository.*;
+import ru.vk.etcos.tasklist.business.search.*;
 
 @Service
 public class PriorityService {
@@ -31,5 +32,9 @@ public class PriorityService {
 
     public void deleteById(Long id) {
         priorityRepo.deleteById(id);
+    }
+
+    public List<CPriority> findByValues(PrioritySearchValues values) {
+        return priorityRepo.findByValues(values.getTitle(), values.getEmail());
     }
 }

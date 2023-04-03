@@ -130,11 +130,11 @@ public class CategoryController {
     }
 
     @PostMapping("/search")
-    public ResponseEntity<List<CCategory>> search(@RequestBody CCategorySearchValues values) {
+    public ResponseEntity<List<CCategory>> search(@RequestBody CategorySearchValues values) {
         CLogger.info("CategoryController.search for category values: " + values);
 
         // поиск категорий пользователя по названию
-        List<CCategory> result = categoryService.findByValues(values.getTitle(), values.getEmail());
+        List<CCategory> result = categoryService.findByValues(values);
 
         return ResponseEntity.ok(result);
     }

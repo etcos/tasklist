@@ -26,6 +26,6 @@ public class CPriority {
     // referencedColumnName = "id" : по каким полям связывать (foreign key)
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private CUser userId;
+    private CUser user;
 
 }

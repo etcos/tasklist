@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 import ru.vk.etcos.tasklist.business.entity.*;
 import ru.vk.etcos.tasklist.business.repository.*;
+import ru.vk.etcos.tasklist.business.search.*;
 
 // Всегда нужно создавать отдельный класс Service для доступа к данным, даже если кажется, что мало методов
 // или все можно реализовать сразу в контроллере
@@ -37,7 +38,7 @@ public class CategoryService {
         categoryRepo.deleteById(id);
     }
 
-    public List<CCategory> findByValues(String title, String email) {
-        return categoryRepo.findByValues(title, email);
+    public List<CCategory> findByValues(CategorySearchValues values) {
+        return categoryRepo.findByValues(values.getTitle(), values.getEmail());
     }
 }
