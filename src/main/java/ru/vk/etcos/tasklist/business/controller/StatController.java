@@ -19,7 +19,7 @@ public class StatController {
 
     @PostMapping("/stat")
     public ResponseEntity<CStat> findByEmail(@RequestBody String email) {
-        CLogger.info("rStatController.findByEmail for email: " + email);
+        CLogger.info("StatController.findByEmail for email: " + email);
 
         return ResponseEntity.ok(statService.findStat(email));
     }

@@ -42,13 +42,13 @@ public class CTask {
     // referencedColumnName = "id" : по каким полям связывать (foreign key)
     @ManyToOne
     @JoinColumn(name = "category_id", referencedColumnName = "id")
-    private CCategory categoryId;
+    private CCategory category;
 
     // ссылка на объект User
     // задача принадлежит только одному юзеру, один юзер может иметь множество задач
     // referencedColumnName = "id" : по каким полям связывать (foreign key)
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private CUser userId;
+    private CUser user;
 
 }
