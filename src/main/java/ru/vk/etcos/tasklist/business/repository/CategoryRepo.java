@@ -25,6 +25,7 @@ public interface CategoryRepo extends JpaRepository<CCategory, Long> {
     @Query("SELECT c FROM CCategory c WHERE " +
         "(:title IS NULL OR :title = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :title, '%'))) " + // если title пустой, то выберутся все записи, если не пустой - то только совпадающие записи
         "AND c.user.email = :email " + // фильтрация для конкретного пользователя
-        "ORDER BY c.title ASC") // сортировка по названию
+        "ORDER BY c.title ASC" // сортировка по названию
+    )
     List<CCategory> findByValues(@Param("title") String title, @Param("email") String email);
 }
