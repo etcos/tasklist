@@ -4,9 +4,12 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.dao.*;
+import org.springframework.data.domain.*;
+import org.springframework.data.domain.Sort.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import ru.vk.etcos.tasklist.business.entity.*;
+import ru.vk.etcos.tasklist.business.search.*;
 import ru.vk.etcos.tasklist.business.sevice.*;
 import ru.vk.etcos.tasklist.util.*;
 
@@ -14,6 +17,7 @@ import ru.vk.etcos.tasklist.util.*;
 @RequestMapping("/task")
 public class TaskController {
 
+    private static final String ID_COLUMN = "id";
     private final TaskService taskService;
 
     @Autowired
@@ -110,4 +114,44 @@ public class TaskController {
 
         return ResponseEntity.ok(optTask.get());
     }
+
+    @PostMapping("/search")
+    public ResponseEntity<Page<CTask>> search(@RequestBody TaskSearchValues values) {
+        CLogger.info("TaskController.search for task values: " + values);
+
+        if (Objects.nonNull(values.getDateFrom())) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(values.getDateFrom());
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            values.setDateFrom(calendar.getTime());
+        }
+
+        if (Objects.nonNull(values.getDateTo())) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(values.getDateTo());
+            calendar.set(Calendar.HOUR_OF_DAY, 23);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 59);
+            calendar.set(Calendar.MILLISECOND, 999);
+            values.setDateTo(calendar.getTime());
+        }
+
+        Sort.Direction direction = Objects.isNull(values.getSortDirection())
+                || values.getSortDirection().trim().isEmpty()
+                || values.getSortDirection().trim().equals("asc")
+            ? Sort.Direction.ASC : Direction.DESC;
+
+        Sort sort = Sort.by(direction, Objects.isNull(values.getSortColumn()) ? ID_COLUMN : values.getSortColumn());
+        PageRequest pageRequest = PageRequest.of(
+            Objects.isNull(values.getPageNumber()) ? 0 : values.getPageNumber(),
+            Objects.isNull(values.getPageSize()) ? 10 : values.getPageSize(),
+            sort
+        );
+
+        return ResponseEntity.ok(taskService.findByValues(values, pageRequest));
+    }
+
 }
