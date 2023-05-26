@@ -2,6 +2,7 @@ package ru.vk.etcos.tasklist.business.sevice;
 
 import java.util.*;
 
+import jakarta.transaction.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 import ru.vk.etcos.tasklist.business.entity.*;
@@ -9,6 +10,7 @@ import ru.vk.etcos.tasklist.business.repository.*;
 import ru.vk.etcos.tasklist.business.search.*;
 
 @Service
+@Transactional
 public class PriorityService {
 
     private final PriorityRepo priorityRepo;

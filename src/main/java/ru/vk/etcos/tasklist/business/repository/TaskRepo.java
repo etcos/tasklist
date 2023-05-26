@@ -15,7 +15,7 @@ public interface TaskRepo extends JpaRepository<CTask, Long> {
 
     @Query("SELECT t FROM CTask t WHERE " +
         "(:title IS NULL OR :title = '' OR LOWER(t.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-        "(:comleted IS NULL OR t.completed = :comleted) AND " +
+        "(:completed IS NULL OR t.completed = :completed) AND " +
         "(:priorityId IS NULL OR t.priority.id = :priorityId) AND " +
         "(:categoryId IS NULL OR t.category.id = :categoryId) AND " +
         "((CAST(:dateFrom AS TIMESTAMP) IS NULL OR t.taskDate >= :dateFrom) AND " +
