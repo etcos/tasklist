@@ -20,4 +20,11 @@ public class UserService {
         return userRepo.save(user);
     }
 
+    public boolean userExistsByEmail(String email) {
+        return userRepo.existsByEmail(email);
+    }
+
+    public boolean userExistsByUsername(String username) {
+        return userRepo.existsByUsername(username);
+    }
 }
