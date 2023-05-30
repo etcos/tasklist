@@ -43,4 +43,10 @@ public class AuthController {
 
         return ResponseEntity.ok(savedUser);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<JsonException> handleExceptions(Exception ex) {
+        return new ResponseEntity<>(new JsonException(ex.getClass().getSimpleName()), HttpStatus.BAD_REQUEST);
+    }
+
 }
