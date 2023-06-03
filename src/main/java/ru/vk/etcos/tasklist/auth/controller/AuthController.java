@@ -1,7 +1,5 @@
 package ru.vk.etcos.tasklist.auth.controller;
 
-import java.util.*;
-
 import jakarta.validation.*;
 import lombok.extern.java.*;
 import org.springframework.beans.factory.annotation.*;
@@ -10,6 +8,7 @@ import org.springframework.security.crypto.password.*;
 import org.springframework.web.bind.annotation.*;
 import ru.vk.etcos.tasklist.auth.entity.*;
 import ru.vk.etcos.tasklist.auth.exception.*;
+import ru.vk.etcos.tasklist.auth.exception.RoleNotFoundException;
 import ru.vk.etcos.tasklist.auth.service.*;
 
 @RestController
@@ -36,7 +35,10 @@ public class AuthController {
             throw new EmailExistsException("Email already exists.");
         }
 
-        // шифруем пароль
+        CRole defaultRole = userService.findByName(UserService.DEFAULT_ROLE)
+                .orElseThrow(() -> new RoleNotFoundException("Default Role USER not found."));
+        user.getRoles().add(defaultRole);
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         CUser savedUser = userService.save(user);
