@@ -15,15 +15,23 @@ public class UserService {
 
     private UserRepo userRepo;
     private RoleRepo roleRepo;
+    private ActivityRepo activityRepo;
 
     @Autowired
-    public UserService(UserRepo userRepo, RoleRepo roleRepo) {
+    public UserService(UserRepo userRepo, RoleRepo roleRepo, ActivityRepo activityRepo) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
+        this.activityRepo = activityRepo;
     }
 
-    public CUser save(CUser user) {
-        return userRepo.save(user);
+    public CUser register(CUser user, CActivity activity) {
+        CUser savedUser = userRepo.save(user);
+        activity.setUser(savedUser);
+
+        CActivity savedActivity = activityRepo.save(activity);
+        user.setActivity(savedActivity);
+
+        return savedUser;
     }
 
     public boolean userExistsByEmail(String email) {

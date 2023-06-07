@@ -1,5 +1,7 @@
 package ru.vk.etcos.tasklist.auth.controller;
 
+import java.util.*;
+
 import jakarta.validation.*;
 import lombok.extern.java.*;
 import org.springframework.beans.factory.annotation.*;
@@ -41,7 +43,10 @@ public class AuthController {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        CUser savedUser = userService.save(user);
+        CActivity activity = new CActivity();
+        activity.setUuid(UUID.randomUUID().toString());
+
+        CUser savedUser = userService.register(user, activity);
 
         return ResponseEntity.ok(savedUser);
     }
