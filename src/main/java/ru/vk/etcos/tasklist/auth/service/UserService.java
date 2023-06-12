@@ -45,4 +45,16 @@ public class UserService {
     public Optional<CRole> findByName(String role) {
         return roleRepo.findByName(role);
     }
+
+    public Optional<CActivity> findActivityByUuid(String uuid) {
+        return activityRepo.findByUuid(uuid);
+    }
+
+    public int activate(String uuid) {
+        return activityRepo.changeActivated(uuid, true);
+    }
+
+    public int deactivate(String uuid) {
+        return activityRepo.changeActivated(uuid, false);
+    }
 }

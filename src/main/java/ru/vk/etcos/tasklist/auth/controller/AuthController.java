@@ -6,6 +6,7 @@ import jakarta.validation.*;
 import lombok.extern.java.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.*;
 import org.springframework.web.bind.annotation.*;
 import ru.vk.etcos.tasklist.auth.entity.*;
@@ -49,6 +50,20 @@ public class AuthController {
         CUser savedUser = userService.register(user, activity);
 
         return ResponseEntity.ok(savedUser);
+    }
+
+    @PostMapping("/activate-account")
+    public ResponseEntity<Boolean> activateUser(@RequestBody String uuid) {
+        CActivity activity = userService.findActivityByUuid(uuid)
+            .orElseThrow(() -> new UsernameNotFoundException("Activity Not Found with uuid: " + uuid));
+
+        if (activity.isActivated()) {
+            throw new UserAlreadyActivatedException("User already activated");
+        }
+
+        int updateCount = userService.activate(uuid);
+
+        return ResponseEntity.ok(updateCount == 1);
     }
 
     @ExceptionHandler(Exception.class)
