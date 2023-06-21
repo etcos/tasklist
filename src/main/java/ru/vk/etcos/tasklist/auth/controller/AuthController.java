@@ -6,6 +6,9 @@ import jakarta.validation.*;
 import lombok.extern.java.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.*;
+import org.springframework.security.core.context.*;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.*;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +23,13 @@ import ru.vk.etcos.tasklist.auth.service.*;
 public class AuthController {
     private UserService userService;
     private PasswordEncoder passwordEncoder;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
     @PutMapping("/register")
@@ -64,6 +69,23 @@ public class AuthController {
         int updateCount = userService.activate(uuid);
 
         return ResponseEntity.ok(updateCount == 1);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<CUser> login(@Valid @RequestBody CUser user) {
+
+        Authentication authenticate = authenticationManager
+            .authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authenticate.getPrincipal();
+
+        if (userDetails.isActivated()) {
+            return ResponseEntity.ok(userDetails.getUser());
+        } else {
+            throw new DisabledException("User disabled");
+        }
     }
 
     @ExceptionHandler(Exception.class)

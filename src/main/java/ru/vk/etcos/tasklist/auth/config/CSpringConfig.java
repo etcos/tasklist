@@ -1,21 +1,15 @@
 package ru.vk.etcos.tasklist.auth.config;
 
 import org.springframework.context.annotation.*;
+import org.springframework.security.authentication.*;
+import org.springframework.security.config.annotation.authentication.configuration.*;
 import org.springframework.security.config.annotation.web.builders.*;
 import org.springframework.security.config.annotation.web.configuration.*;
-import org.springframework.security.crypto.bcrypt.*;
-import org.springframework.security.crypto.password.*;
 import org.springframework.security.web.*;
 
 @Configuration
 @EnableWebSecurity(debug = true) // указывает Spring контейнеру, чтобы находил файл конфигурации в классе
 public class CSpringConfig {
-
-    // кодировщик паролей односторонним алгоритмом хэширования BCrypt
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -36,5 +30,10 @@ public class CSpringConfig {
 
         return http.build();
     }
-    
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
 }
