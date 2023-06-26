@@ -5,6 +5,7 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.configuration.*;
 import org.springframework.security.config.annotation.web.builders.*;
 import org.springframework.security.config.annotation.web.configuration.*;
+import org.springframework.security.config.http.*;
 import org.springframework.security.web.*;
 
 @Configuration
@@ -27,6 +28,10 @@ public class CSpringConfig {
 
         // обязательное использование HTTPS
         http.requiresChannel().anyRequest().requiresSecure();
+
+        // Отключаем хранение сессии на сервере.
+        // Клиент будет вызывать RESTful API сервера и передавать токен с инфой о пользователе
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         return http.build();
     }
