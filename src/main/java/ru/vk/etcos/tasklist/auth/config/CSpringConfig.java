@@ -1,5 +1,7 @@
 package ru.vk.etcos.tasklist.auth.config;
 
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.web.servlet.*;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.configuration.*;
@@ -7,10 +9,30 @@ import org.springframework.security.config.annotation.web.builders.*;
 import org.springframework.security.config.annotation.web.configuration.*;
 import org.springframework.security.config.http.*;
 import org.springframework.security.web.*;
+import org.springframework.security.web.session.*;
+import ru.vk.etcos.tasklist.auth.filter.*;
 
 @Configuration
 @EnableWebSecurity(debug = true) // указывает Spring контейнеру, чтобы находил файл конфигурации в классе
 public class CSpringConfig {
+
+    // перехватывает все входящие запросы (проверяет jwt если необходимо, автоматически логинит пользователя)
+    // нужно зарегистрировать в filterchain
+    private AuthTokenFilter authTokenFilter;
+
+    @Autowired
+    public void setAuthTokenFilter(AuthTokenFilter authTokenFilter) {
+        this.authTokenFilter = authTokenFilter;
+    }
+
+    // нужно отключить вызов AuthTokenFilter для сервлет контейнера (чтобы фильтр не вызывался два раза, а только один раз из Spring контейнера)
+    @Bean
+    public FilterRegistrationBean<AuthTokenFilter> registrationBean(AuthTokenFilter authTokenFilter) {
+        // FilterRegistrationBean - регистратор фильтров для сервлет контейнера
+        FilterRegistrationBean<AuthTokenFilter> authTokenFilterFilterRegistrationBean = new FilterRegistrationBean<>(authTokenFilter);
+        authTokenFilterFilterRegistrationBean.setEnabled(false); // отключить использование фильтра для сервлет контейнера
+        return authTokenFilterFilterRegistrationBean;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -32,6 +54,10 @@ public class CSpringConfig {
         // Отключаем хранение сессии на сервере.
         // Клиент будет вызывать RESTful API сервера и передавать токен с инфой о пользователе
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        // authTokenFilter - валидация JWT, до того, как запрос попадет в контейнер
+        // добавляем наш фильтр в SecurityFilterChain
+        http.addFilterBefore(authTokenFilter, SessionManagementFilter.class);
 
         return http.build();
     }

@@ -32,6 +32,11 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
     }
 
+    @GetMapping("/test")
+    public String test() {
+        return "OK";
+    }
+
     @PutMapping("/register")
     public ResponseEntity<CUser> register(@Valid @RequestBody CUser user) {
 
