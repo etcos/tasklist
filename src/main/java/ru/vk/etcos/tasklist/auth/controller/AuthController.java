@@ -16,6 +16,7 @@ import ru.vk.etcos.tasklist.auth.entity.*;
 import ru.vk.etcos.tasklist.auth.exception.*;
 import ru.vk.etcos.tasklist.auth.exception.RoleNotFoundException;
 import ru.vk.etcos.tasklist.auth.service.*;
+import ru.vk.etcos.tasklist.auth.utils.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,12 +25,14 @@ public class AuthController {
     private UserService userService;
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
+    private JWTUtils jwtUtils;
 
     @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTUtils jwtUtils) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
     }
 
     @GetMapping("/test")
@@ -87,6 +90,10 @@ public class AuthController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authenticate.getPrincipal();
 
         if (userDetails.isActivated()) {
+            // после каждого успешного входа генерируется новый jwt, чтобы последующие запросы на backend авторизовать автоматически
+            String jwt = jwtUtils.createAccessToken(userDetails.getUser());
+
+
             return ResponseEntity.ok(userDetails.getUser());
         } else {
             throw new DisabledException("User disabled");
