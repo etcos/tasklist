@@ -26,13 +26,16 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JWTUtils jwtUtils;
+    private CookieUtils cookieUtils;
 
     @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTUtils jwtUtils) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+            JWTUtils jwtUtils, CookieUtils cookieUtils) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
+        this.cookieUtils = cookieUtils;
     }
 
     @GetMapping("/test")
@@ -93,8 +96,20 @@ public class AuthController {
             // после каждого успешного входа генерируется новый jwt, чтобы последующие запросы на backend авторизовать автоматически
             String jwt = jwtUtils.createAccessToken(userDetails.getUser());
 
+            // пароль нужен только для аутентификации - нужно занулить, чтобы не засветить его
+            userDetails.getUser().setPassword(null);
 
-            return ResponseEntity.ok(userDetails.getUser());
+            // создаем кук со значением jwt (браузер будет отправлять его автоматически на backend при каждом запросе)
+            HttpCookie cookie = cookieUtils.createJWTCookie(jwt);
+
+            // объект для добавления заголовков в response
+            HttpHeaders responseHeaders = new HttpHeaders();
+
+            // добавляем кук в заголовок
+            responseHeaders.add(HttpHeaders.SET_COOKIE, cookie.toString());
+
+            // отправляем клиенту данные пользователя (и jwt-кук в заголовке Set-Cookie)
+            return ResponseEntity.ok().headers(responseHeaders).body(userDetails.getUser());
         } else {
             throw new DisabledException("User disabled");
         }

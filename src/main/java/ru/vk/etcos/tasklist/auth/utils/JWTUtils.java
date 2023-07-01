@@ -32,7 +32,7 @@ public class JWTUtils {
             .setSubject(user.getId().toString()) // одно из стандартных полей jwt
             .setIssuedAt(currentDate) // время отсчета
             .setExpiration(new Date(currentDate.getTime() + accessTokenExpiration)) // срок действия access_token
-            .signWith(SignatureAlgorithm.HS512, jwtSecret) // алгоритм кодирования
+            .signWith(SignatureAlgorithm.HS256, jwtSecret) // алгоритм кодирования
             .compact(); // преобразовать в формат Base64
     }
 }
