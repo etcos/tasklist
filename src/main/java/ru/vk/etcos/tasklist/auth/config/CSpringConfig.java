@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.*;
 import org.springframework.security.config.http.*;
 import org.springframework.security.web.*;
 import org.springframework.security.web.session.*;
+import ru.vk.etcos.tasklist.auth.exception.*;
 import ru.vk.etcos.tasklist.auth.filter.*;
 
 @Configuration
@@ -20,9 +21,17 @@ public class CSpringConfig {
     // нужно зарегистрировать в filterchain
     private AuthTokenFilter authTokenFilter;
 
+    // самый верхний фильтр, который отлавливает ошибки во всех последующих фильтрах
+    private ExceptionHandlerFilter exceptionHandlerFilter;
+
     @Autowired
     public void setAuthTokenFilter(AuthTokenFilter authTokenFilter) {
         this.authTokenFilter = authTokenFilter;
+    }
+
+    @Autowired
+    public void setExceptionHandlerFilter(ExceptionHandlerFilter exceptionHandlerFilter) {
+        this.exceptionHandlerFilter = exceptionHandlerFilter;
     }
 
     // нужно отключить вызов AuthTokenFilter для сервлет контейнера (чтобы фильтр не вызывался два раза, а только один раз из Spring контейнера)
@@ -58,6 +67,10 @@ public class CSpringConfig {
         // authTokenFilter - валидация JWT, до того, как запрос попадет в контейнер
         // добавляем наш фильтр в SecurityFilterChain
         http.addFilterBefore(authTokenFilter, SessionManagementFilter.class);
+
+        // отлавливает ошибки в фильтрах и отправляет их клиенту в формате json
+        // этот фильтр должен находиться перед всеми нашими фильтрами
+        http.addFilterBefore(exceptionHandlerFilter, AuthTokenFilter.class);
 
         return http.build();
     }

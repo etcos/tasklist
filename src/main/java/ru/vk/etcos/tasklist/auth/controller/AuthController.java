@@ -38,9 +38,16 @@ public class AuthController {
         this.cookieUtils = cookieUtils;
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "OK";
+    // TODO for test
+    @PostMapping("/test-no-auth")
+    public String testNoAuth() {
+        return "OK NO AUTH";
+    }
+
+    // TODO for test
+    @PostMapping("/test-with-auth")
+    public String testWithAuth() {
+        return "OK WITH AUTH";
     }
 
     @PutMapping("/register")

@@ -1,5 +1,8 @@
 package ru.vk.etcos.tasklist.auth.utils;
 
+import java.util.*;
+
+import jakarta.servlet.http.*;
 import org.apache.tomcat.util.http.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
@@ -41,5 +44,18 @@ public class CookieUtils {
         Браузер сверяет URL запроса (который набрали в адресной строке или любой ajax запрос формы) с параметрами кука.
         И если есть хотя бы одно не совпадение (например domain или path) - кук отправлен не будет.
          */
+    }
+
+    // Получаем значение кук access_token и возвращаем его значение (JWT)
+    public String getCookieAccessToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (Objects.nonNull(cookies)) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(ACCESS_TOKEN)) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

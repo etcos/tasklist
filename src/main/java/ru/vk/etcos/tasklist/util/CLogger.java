@@ -1,5 +1,7 @@
 package ru.vk.etcos.tasklist.util;
 
+import java.util.logging.*;
+
 import lombok.extern.java.*;
 
 @Log
@@ -13,4 +15,7 @@ public class CLogger {
         log.warning(message);
     }
 
+    public static void fatal(String message, Exception e) {
+        log.log(Level.SEVERE, message, e);
+    }
 }
