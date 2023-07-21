@@ -6,6 +6,7 @@ import jakarta.validation.*;
 import lombok.extern.java.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
 import org.springframework.security.core.context.*;
@@ -45,6 +46,7 @@ public class AuthController {
     }
 
     // TODO for test
+    @PreAuthorize("USER")
     @PostMapping("/test-with-auth")
     public String testWithAuth() {
         return "OK WITH AUTH";
@@ -100,11 +102,11 @@ public class AuthController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authenticate.getPrincipal();
 
         if (userDetails.isActivated()) {
-            // после каждого успешного входа генерируется новый jwt, чтобы последующие запросы на backend авторизовать автоматически
-            String jwt = jwtUtils.createAccessToken(userDetails.getUser());
-
             // пароль нужен только для аутентификации - нужно занулить, чтобы не засветить его
             userDetails.getUser().setPassword(null);
+
+            // после каждого успешного входа генерируется новый jwt, чтобы последующие запросы на backend авторизовать автоматически
+            String jwt = jwtUtils.createAccessToken(userDetails.getUser());
 
             // создаем кук со значением jwt (браузер будет отправлять его автоматически на backend при каждом запросе)
             HttpCookie cookie = cookieUtils.createJWTCookie(jwt);

@@ -2,6 +2,7 @@ package ru.vk.etcos.tasklist.auth.utils;
 
 import java.util.*;
 
+import com.fasterxml.jackson.databind.*;
 import io.jsonwebtoken.*;
 import lombok.extern.java.*;
 import org.springframework.beans.factory.annotation.*;
@@ -17,6 +18,7 @@ import ru.vk.etcos.tasklist.util.*;
 @Log
 public class JWTUtils {
 
+    public static final String CLAIM_USER_KEY = "user";
     // секретный ключ для создания jwt (храниться только на сервере, нельзя передавать)
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -29,10 +31,14 @@ public class JWTUtils {
         // для отсчета времени от текущего момента
         Date currentDate = new Date();
 
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(Claims.EXPIRATION, new Date(currentDate.getTime() + accessTokenExpiration)); // срок действия access_token
+        claims.put(Claims.ISSUED_AT, currentDate); // время отсчета
+        claims.put(CLAIM_USER_KEY, user); // пользователь
+        claims.put(Claims.SUBJECT, user.getId()); // системные поля sub также можно добавлять
+
         return Jwts.builder() // какие именно данные (claims) добавлять в jwt
-            .setSubject(user.getId().toString()) // одно из стандартных полей jwt
-            .setIssuedAt(currentDate) // время отсчета
-            .setExpiration(new Date(currentDate.getTime() + accessTokenExpiration)) // срок действия access_token
+            .setClaims(claims) // добавляем все claims
             .signWith(SignatureAlgorithm.HS256, jwtSecret) // алгоритм кодирования
             .compact(); // преобразовать в формат Base64
     }
@@ -55,5 +61,17 @@ public class JWTUtils {
         }
 
         return false; // валидация не прошла - значит данные payload были изменены или они были подписаны не нашим секретным ключом.
+    }
+
+    // Получение поля sub из jwt
+    public CUser getUser(String jwt) {
+        Map map = (Map) Jwts.parser()
+            .setSigningKey(jwtSecret)
+            .parseClaimsJws(jwt)
+            .getBody()
+            .get(CLAIM_USER_KEY);
+
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(map, CUser.class);
     }
 }

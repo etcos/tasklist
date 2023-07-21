@@ -8,9 +8,12 @@ import jakarta.servlet.http.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.context.*;
+import org.springframework.security.web.authentication.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.filter.*;
+import ru.vk.etcos.tasklist.auth.entity.*;
 import ru.vk.etcos.tasklist.auth.exception.*;
+import ru.vk.etcos.tasklist.auth.service.*;
 import ru.vk.etcos.tasklist.auth.utils.*;
 import ru.vk.etcos.tasklist.util.*;
 
@@ -64,15 +67,30 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
             if (Objects.nonNull(jwt)) {
                 if (jwtUtils.validate(jwt)) {
-
-                    // TODO
-
                     CLogger.info("JWT validated successfully");
-                } else {
-                    throw new JwtCommonException("JWT validated failed");
+
+                    CUser user = jwtUtils.getUser(jwt);
+                    UserDetailsImpl userDetails = new UserDetailsImpl(user);
+
+                    // Создаем объект UsernamePasswordAuthenticationToken (т.е. не используем пароль и не вызываем метод authenticate,
+                    // как в методе login - это уже сделано ранее и был создан jwt)
+                    // Привязываем UsernamePasswordAuthenticationToken к пользователю.
+                    // Добавляем объект UsernamePasswordAuthenticationToken в Spring контейнер - тем самым Spring будет видеть,
+                    // что к пользователю привязан объект authentication - соответственно он успешно залогинен
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()); // пароль не нужен
+
+                    // важно: добавляем входящий запрос в контейнер,
+                    // чтобы дальше уже Spring обрабатывал запрос с учетом данных авторизации
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // вручную добавляем объект authentication в spring контейнер - тем самым пользователь успешно залогинен и spring это видит
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else { // не смогли обработать токен (возможно вышел срок действия или любая другая ошибка)
+                    throw new JwtCommonException("JWT validated failed"); // пользователь не будет авторизован (т.к. jwt некорректный) и клиенту отправится ошибка
                 }
             } else {
-                throw new AuthenticationCredentialsNotFoundException("Token not found");
+                throw new AuthenticationCredentialsNotFoundException("Token not found"); // если запрос пришел не на публичную страницу и если не найден jwt
             }
         }
 
