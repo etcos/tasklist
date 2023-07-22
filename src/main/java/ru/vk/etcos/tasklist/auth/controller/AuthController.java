@@ -124,6 +124,20 @@ public class AuthController {
         }
     }
 
+    // выход из системы - мы должны удалить кук с jwt (пользователю придется заново логиниться при следующем входе)
+    @PostMapping("/logout")
+    public ResponseEntity logout() { // body отсутствует (ничего не передаем от клиента)
+        // создаем кук с истекшим сроком действия, тес самым браузер удалит такой кук автоматически
+        HttpCookie cookie = cookieUtils.deleteJwtCookie();
+
+        // создаем header и добавляем кук
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        // добавляем header с куком в ответ и отправляем клиенту, браузер автоматически удалил кук
+        return ResponseEntity.ok().headers(responseHeaders).build();
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<JsonException> handleExceptions(Exception ex) {
         return new ResponseEntity<>(new JsonException(ex.getClass().getSimpleName()), HttpStatus.BAD_REQUEST);

@@ -19,8 +19,8 @@ import org.springframework.stereotype.*;
 @Component // добавляем в Spring контейнер, будет доступен для любого Spring компонента (контроллеры, сервисы и пр.)
 public class CookieUtils {
 
-    // имя кука, который будет хранить jwt (возьмем стандартное имя)
-    private final String ACCESS_TOKEN = "access_token";
+    @Value("${cookie.jwt.name}")
+    private String cookieJwtName;
 
     @Value("${cookie.jwt.max-age}")
     private int cookieAccessTokenDuration;
@@ -30,7 +30,7 @@ public class CookieUtils {
 
     // Создает server-side cookie со значением jwt. Важно: этот кук сможет считать только сервер, клиент не сможет (для безопасности)
     public HttpCookie createJWTCookie(String jwt) {
-        return ResponseCookie.from(ACCESS_TOKEN, jwt) // название и значение кука, если запрос пришел со стороннего сайта
+        return ResponseCookie.from(cookieJwtName, jwt) // название и значение кука, если запрос пришел со стороннего сайта
             .maxAge(cookieAccessTokenDuration) // продолжительность 86400 сек = 1 сутки
             .sameSite(SameSiteCookies.STRICT.getValue()) // запрет на отправку кука
             .httpOnly(true) // кук будет доступен для считывания только на сервере
@@ -51,11 +51,23 @@ public class CookieUtils {
         Cookie[] cookies = request.getCookies();
         if (Objects.nonNull(cookies)) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals(ACCESS_TOKEN)) {
+                if (cookie.getName().equals(cookieJwtName)) {
                     return cookie.getValue();
                 }
             }
         }
         return null;
+    }
+
+    // Зануляет (удалят) кук
+    public HttpCookie deleteJwtCookie() {
+        return ResponseCookie.from(cookieJwtName, null) // пустое значение
+            .maxAge(0) // кук с нулевым сроком действия браузер автоматически удалит
+            .sameSite(SameSiteCookies.STRICT.getValue()) // запрет на отправку кука
+            .httpOnly(true) // кук будет доступен для считывания только на сервере
+            .secure(true) // кук будет передаваться браузером на сервер только если канал защищен (https)
+            .domain(cookieAccessTokenDomain) // для какого домена действует кук
+            .path("/") // кук будет доступен для всех URL
+            .build();
     }
 }
