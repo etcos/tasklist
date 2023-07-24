@@ -57,4 +57,8 @@ public class UserService {
     public int deactivate(String uuid) {
         return activityRepo.changeActivated(uuid, false);
     }
+
+    public int updatePassword(String password, String username) {
+        return userRepo.updatePassword(password, username);
+    }
 }

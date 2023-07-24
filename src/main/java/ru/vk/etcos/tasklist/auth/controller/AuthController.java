@@ -143,4 +143,19 @@ public class AuthController {
         return new ResponseEntity<>(new JsonException(ex.getClass().getSimpleName()), HttpStatus.BAD_REQUEST);
     }
 
+    // обновление пароля
+    @PostMapping("/update-password")
+    @PreAuthorize("USER")
+    public ResponseEntity<Boolean> updatePassword(@RequestBody String password) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // получаем пользователя из Spring контейнера
+        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+
+        // кол-во обновленных записей
+        int updateCount = userService.updatePassword(passwordEncoder.encode(password), user.getUsername());
+
+        return ResponseEntity.ok(updateCount == 1); // 1 - запись обновилась успешно, 0 - что-то пошло не так
+    }
+
 }
