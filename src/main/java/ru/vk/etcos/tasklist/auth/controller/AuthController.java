@@ -46,7 +46,7 @@ public class AuthController {
     }
 
     // TODO for test
-    @PreAuthorize("USER")
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/test-with-auth")
     public String testWithAuth() {
         return "OK WITH AUTH";
@@ -145,7 +145,7 @@ public class AuthController {
 
     // обновление пароля
     @PostMapping("/update-password")
-    @PreAuthorize("USER")
+    @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<Boolean> updatePassword(@RequestBody String password) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

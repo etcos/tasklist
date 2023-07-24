@@ -5,6 +5,7 @@ import org.springframework.boot.web.servlet.*;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.configuration.*;
+import org.springframework.security.config.annotation.method.configuration.*;
 import org.springframework.security.config.annotation.web.builders.*;
 import org.springframework.security.config.annotation.web.configuration.*;
 import org.springframework.security.config.http.*;
@@ -15,6 +16,7 @@ import ru.vk.etcos.tasklist.auth.filter.*;
 
 @Configuration
 @EnableWebSecurity(debug = true) // указывает Spring контейнеру, чтобы находил файл конфигурации в классе
+@EnableGlobalMethodSecurity(prePostEnabled = true) // включаем использование аннотаций pre/post в компонентах Spring (например @PreAuthorize)
 public class CSpringConfig {
 
     // перехватывает все входящие запросы (проверяет jwt если необходимо, автоматически логинит пользователя)
