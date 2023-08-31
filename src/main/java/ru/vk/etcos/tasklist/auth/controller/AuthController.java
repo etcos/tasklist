@@ -28,15 +28,19 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
     private JWTUtils jwtUtils;
     private CookieUtils cookieUtils;
+    private EmailService emailService;
+    private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
-            JWTUtils jwtUtils, CookieUtils cookieUtils) {
+            JWTUtils jwtUtils, CookieUtils cookieUtils, EmailService emailService, UserDetailsServiceImpl userDetailsService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.cookieUtils = cookieUtils;
+        this.emailService = emailService;
+        this.userDetailsService = userDetailsService;
     }
 
     // TODO for test
@@ -74,6 +78,9 @@ public class AuthController {
 
         CUser savedUser = userService.register(user, activity);
 
+        // отправляем письмо о том, что нужно активировать аккаунт(выполняется в параллельном потоке)
+        emailService.sendActivateEmail(user.getEmail(), user.getUsername(), activity.getUuid());
+
         return ResponseEntity.ok(savedUser);
     }
 
@@ -89,6 +96,37 @@ public class AuthController {
         int updateCount = userService.activate(uuid);
 
         return ResponseEntity.ok(updateCount == 1);
+    }
+
+    @PostMapping("/reset-activate-email")
+    public ResponseEntity resetActivateEmail(@RequestBody String usernameOrEmail) {
+        // находим пользователя в БД (ищет как по email, так и по username)
+        UserDetailsImpl user = (UserDetailsImpl) userDetailsService.loadUserByUsername(usernameOrEmail);
+
+        // у каждого пользователя должна быть запись Activity (вся его активность) - если этого объекта нет - значит что-то пошло не так
+        CActivity activity = userService.findActivityByUserId(user.getId())
+            .orElseThrow(() -> new UserAlreadyActivatedException("Activity Not Found with user: " + user.getUsername()));
+
+        if (activity.isActivated()) {
+            throw new UserAlreadyActivatedException("User already activated: " + usernameOrEmail);
+        }
+
+        // отправляем письмо активации
+        emailService.sendActivateEmail(user.getEmail(), user.getUsername(), activity.getUuid());
+
+        return ResponseEntity.ok().build();
+    }
+
+    // отправка письма для сброса пароля
+    @PostMapping("/send-email-reset-password")
+    public ResponseEntity sendEmailResetPassword(@RequestBody String email) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(email);
+        CUser user = userDetails.getUser();
+
+        // отправляем письмо для сброса пароля
+        emailService.sendResetPassword(user.getEmail(), jwtUtils.createEmailResetToken(user));
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/login")
@@ -126,7 +164,7 @@ public class AuthController {
 
     // выход из системы - мы должны удалить кук с jwt (пользователю придется заново логиниться при следующем входе)
     @PostMapping("/logout")
-    public ResponseEntity logout() { // body отсутствует (ничего не передаем от клиента)
+    public ResponseEntity logout() {
         // создаем кук с истекшим сроком действия, тес самым браузер удалит такой кук автоматически
         HttpCookie cookie = cookieUtils.deleteJwtCookie();
 
@@ -136,11 +174,6 @@ public class AuthController {
 
         // добавляем header с куком в ответ и отправляем клиенту, браузер автоматически удалил кук
         return ResponseEntity.ok().headers(responseHeaders).build();
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<JsonException> handleExceptions(Exception ex) {
-        return new ResponseEntity<>(new JsonException(ex.getClass().getSimpleName()), HttpStatus.BAD_REQUEST);
     }
 
     // обновление пароля
@@ -156,6 +189,11 @@ public class AuthController {
         int updateCount = userService.updatePassword(passwordEncoder.encode(password), user.getUsername());
 
         return ResponseEntity.ok(updateCount == 1); // 1 - запись обновилась успешно, 0 - что-то пошло не так
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<JsonException> handleExceptions(Exception ex) {
+        return new ResponseEntity<>(new JsonException(ex.getClass().getSimpleName()), HttpStatus.BAD_REQUEST);
     }
 
 }

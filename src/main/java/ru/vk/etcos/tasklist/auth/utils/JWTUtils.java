@@ -27,12 +27,30 @@ public class JWTUtils {
     @Value("${jwt.access_token-expiration}")
     private int accessTokenExpiration;
 
+    // длительность токена для сброса пароля(чем короче, тем лучше)
+    @Value("${jwt.reset-pass-expiration}")
+    private int resetPassTokenExpiration;
+
+
+    // создает JWT для доступа к данным
+    // в user будут заполнены те поля, которые нужны аутентификации и работы в системе
     public String createAccessToken(CUser user) {
+        return createToken(user, accessTokenExpiration);
+    }
+
+    // создает JWT для сброса пароля
+    // в user будут заполнены те поля, которые нужны для сброса пароля
+    public String createEmailResetToken(CUser user) {
+        return createToken(user, resetPassTokenExpiration);
+    }
+
+    // создает JWT с нужным сроком действия
+    private String createToken(CUser user, int duration) {
         // для отсчета времени от текущего момента
         Date currentDate = new Date();
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put(Claims.EXPIRATION, new Date(currentDate.getTime() + accessTokenExpiration)); // срок действия access_token
+        claims.put(Claims.EXPIRATION, new Date(currentDate.getTime() + duration)); // срок действия access_token
         claims.put(Claims.ISSUED_AT, currentDate); // время отсчета
         claims.put(CLAIM_USER_KEY, user); // пользователь
         claims.put(Claims.SUBJECT, user.getId()); // системные поля sub также можно добавлять

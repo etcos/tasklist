@@ -61,4 +61,8 @@ public class UserService {
     public int updatePassword(String password, String username) {
         return userRepo.updatePassword(password, username);
     }
+
+    public Optional<CActivity> findActivityByUserId(long id) {
+        return activityRepo.findByUserId(id);
+    }
 }

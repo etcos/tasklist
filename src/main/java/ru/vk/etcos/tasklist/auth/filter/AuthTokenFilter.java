@@ -37,7 +37,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         "index", // отдельная главная страница?
         "register", // регистрация нового пользователя
         "login", // аутентификация (логин-пароль)
-        "activate-account" // активация нового пользователя
+        "activate-account", // активация нового пользователя
+        "reset-activate-email" // повторная отправка активации
     );
 
     @Autowired
