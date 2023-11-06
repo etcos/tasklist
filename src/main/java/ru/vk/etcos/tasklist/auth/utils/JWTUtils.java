@@ -49,6 +49,9 @@ public class JWTUtils {
         // для отсчета времени от текущего момента
         Date currentDate = new Date();
 
+        // пароль сбрасываем до генерации токена
+        user.setPassword(null);
+
         Map<String, Object> claims = new HashMap<>();
         claims.put(Claims.EXPIRATION, new Date(currentDate.getTime() + duration)); // срок действия access_token
         claims.put(Claims.ISSUED_AT, currentDate); // время отсчета

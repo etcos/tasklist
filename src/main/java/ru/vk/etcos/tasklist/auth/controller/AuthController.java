@@ -98,8 +98,8 @@ public class AuthController {
         return ResponseEntity.ok(updateCount == 1);
     }
 
-    @PostMapping("/reset-activate-email")
-    public ResponseEntity resetActivateEmail(@RequestBody String usernameOrEmail) {
+    @PostMapping("/resent-activate-email")
+    public ResponseEntity resentActivateEmail(@RequestBody String usernameOrEmail) {
         // находим пользователя в БД (ищет как по email, так и по username)
         UserDetailsImpl user = (UserDetailsImpl) userDetailsService.loadUserByUsername(usernameOrEmail);
 
@@ -121,6 +121,10 @@ public class AuthController {
     @PostMapping("/send-email-reset-password")
     public ResponseEntity sendEmailResetPassword(@RequestBody String email) {
         UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(email);
+        if (Objects.isNull(userDetails)) {
+            throw new AuthenticationCredentialsNotFoundException("Email not found!");
+        }
+
         CUser user = userDetails.getUser();
 
         // отправляем письмо для сброса пароля

@@ -99,7 +99,7 @@ public class EmailService {
             String htmlMsg = String.format(
                 "Здравствуйте.</br></br>" +
                     "Запрос на сброс пароля для веб приложения \"Планировщик дел\"</br></br>" +
-                    "<a href='%s'>Для сброса пароля нажмите на эту ссылку</a></br></br>", url
+                    "\n<a href='%s'>Для сброса пароля нажмите на эту ссылку</a></br></br>", url
             );
 
             mimeMessage.setContent(htmlMsg, "text/html"); // тип письма

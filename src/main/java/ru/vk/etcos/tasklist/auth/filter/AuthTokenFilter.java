@@ -10,6 +10,7 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.context.*;
 import org.springframework.security.web.authentication.*;
 import org.springframework.stereotype.*;
+import org.springframework.util.*;
 import org.springframework.web.filter.*;
 import ru.vk.etcos.tasklist.auth.entity.*;
 import ru.vk.etcos.tasklist.auth.exception.*;
@@ -27,6 +28,7 @@ import ru.vk.etcos.tasklist.util.*;
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
+    private static final String BEARER_PREFIX = "Bearer ";
     private JWTUtils jwtUtils;
     private CookieUtils cookieUtils;
 
@@ -38,7 +40,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         "register", // регистрация нового пользователя
         "login", // аутентификация (логин-пароль)
         "activate-account", // активация нового пользователя
-        "reset-activate-email" // повторная отправка активации
+        "reset-activate-email", // повторная отправка активации
+        "send-email-reset-password" // отправка письма на сброс пароля
     );
 
     @Autowired
@@ -64,7 +67,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 // если пользователь еще не прошел аутентификацию (а значит объект Authentication == null в контейнере Spring)
 //                && SecurityContextHolder.getContext().getAuthentication() == null
         ) {
-            String jwt = cookieUtils.getCookieAccessToken(request);
+            String jwt = request.getRequestURI().contains("update-password") // запрос на обновление пароля
+                ? getJwtFromHeader(request) // получаем токен из заголовка Authorization
+                : cookieUtils.getCookieAccessToken(request); // получаем токен из кука access_token
 
             if (Objects.nonNull(jwt)) {
                 if (jwtUtils.validate(jwt)) {
@@ -97,6 +102,23 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         // продолжить выполнение запроса (запрос отправиться дальше в контроллер)
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Метод для получения токена из заголовка Authorization (не из кука) - в проекте используется только в одном месте.
+     * Чтобы обновить пароль, пользователь из письма переходит по URL, в конце которого указан токен.
+     * Этот токен считывается на клиенте и добавляется в заголовок Authorization.
+     * Не рекомендуется на клиенте создавать кук и добавлять туда токен - это не безопасно, т.к. такой client-side-cookie может быть считан.
+     * Поэтому токен добавляется в заголовок запроса Authorization - 1 раз и для 1 запроса.
+     * Во всех остальных случаях токен создается только сервером (флаг httpOnly) и не может быть считан с помощью JS на клиенте.
+     */
+    private String getJwtFromHeader(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
+
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith(BEARER_PREFIX)) {
+            return headerAuth.substring(7); // вырезаем префикс, чтобы получить только значение токена
+        }
+        return null; // токен не найден
     }
 
 }
